@@ -369,6 +369,27 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ store, streamManager, 
 
       </div>
 
+      {/* System Health Status Footer Card */}
+      <div className="bg-[#EBF5FF]/40 border border-[#DBEAFE] rounded-[20px] p-4 flex items-center justify-between select-none">
+        <div className="flex items-center">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-650 flex items-center justify-center border border-emerald-100/50 mr-3.5 flex-shrink-0">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l8.913-6.241C19.789 13.681 21 12 21 10.125V9a1 1 0 00-1-1h-6.812l.813-5.096L5.087 9.141A4 4 0 003 12.375V13.5a1 1 0 001 1h6.812z" />
+            </svg>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-black text-slate-800 leading-none">Command Center Healthy</span>
+            <span className="text-[10px] text-slate-500 font-semibold mt-1.5">All systems operational and performing within normal parameters.</span>
+          </div>
+        </div>
+        <button className="bg-white hover:bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-2 text-[10.5px] font-bold text-blue-600 flex items-center shadow-sm transition-all hover:border-slate-300">
+          View System Health
+          <svg className="w-3.5 h-3.5 ml-1.5 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </button>
+      </div>
+
     </div>
   );
 };

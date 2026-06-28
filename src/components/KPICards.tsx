@@ -155,6 +155,90 @@ export const KPICards: React.FC<KPICardsProps> = React.memo(({ metrics, visibleC
     );
   };
 
+  const renderSavingsChart = (values: number[]) => {
+    // Ensure we have at least 7 values to match Jan-Jul. If not, pad with baseline trend.
+    const baselinePoints = [1.4e9, 1.78e9, 1.25e9, 0.95e9, 0.78e9, 0.68e9, metrics.totalSavingsUSD];
+    const data = values.length >= 7 ? values.slice(-7) : baselinePoints;
+
+    const width = 500;
+    const height = 150;
+    const paddingLeft = 45;
+    const paddingRight = 20;
+    const plotWidth = width - paddingLeft - paddingRight; // 435
+    const plotHeight = 100; // From y=20 to y=120
+    
+    const maxVal = 2e9; // 2.0B
+    
+    const pts = data.map((val, index) => {
+      const x = paddingLeft + (index / (data.length - 1)) * plotWidth;
+      const y = 120 - (val / maxVal) * plotHeight;
+      return { x, y };
+    });
+
+    const linePath = getSmoothBezierPath(pts);
+    const areaPath = `${linePath} L ${pts[pts.length - 1].x} 120 L ${pts[0].x} 120 Z`;
+
+    return (
+      <svg className="w-full h-full overflow-visible select-none text-[8px] font-bold text-slate-400" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="savingsAreaGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#10B981" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="#10B981" stopOpacity="0.0" />
+          </linearGradient>
+        </defs>
+
+        {/* Dashed Grid Lines */}
+        <line x1={paddingLeft} y1="20" x2={width - paddingRight} y2="20" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3 3" />
+        <line x1={paddingLeft} y1="45" x2={width - paddingRight} y2="45" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3 3" />
+        <line x1={paddingLeft} y1="70" x2={width - paddingRight} y2="70" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3 3" />
+        <line x1={paddingLeft} y1="95" x2={width - paddingRight} y2="95" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3 3" />
+        <line x1={paddingLeft} y1="120" x2={width - paddingRight} y2="120" stroke="#E2E8F0" strokeWidth="1" />
+
+        {/* Y-Axis Labels */}
+        <text x={paddingLeft - 10} y="23" textAnchor="end" className="fill-slate-400">$2.0B</text>
+        <text x={paddingLeft - 10} y="48" textAnchor="end" className="fill-slate-400">$1.5B</text>
+        <text x={paddingLeft - 10} y="73" textAnchor="end" className="fill-slate-400">$1.0B</text>
+        <text x={paddingLeft - 10} y="98" textAnchor="end" className="fill-slate-400">$0.5B</text>
+        <text x={paddingLeft - 10} y="123" textAnchor="end" className="fill-slate-400">$0</text>
+
+        {/* Filled Area */}
+        <path d={areaPath} fill="url(#savingsAreaGradient)" />
+
+        {/* Curve Line */}
+        <path
+          fill="none"
+          stroke="#10B981"
+          strokeWidth="1.8"
+          d={linePath}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* Indicator Dot on Last Element */}
+        {pts.length > 0 && (
+          <circle
+            cx={pts[pts.length - 1].x}
+            cy={pts[pts.length - 1].y}
+            r="3.5"
+            fill="#10B981"
+            stroke="#FFFFFF"
+            strokeWidth="1.5"
+          />
+        )}
+
+        {/* X-Axis Labels */}
+        {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'].map((m, idx) => {
+          const x = paddingLeft + (idx / 6) * plotWidth;
+          return (
+            <text key={m} x={x} y="142" textAnchor="middle" className="fill-slate-400">
+              {m}
+            </text>
+          );
+        })}
+      </svg>
+    );
+  };
+
   const renderHeroBars = (values: number[]) => {
     if (values.length < 2) {
       return (
@@ -377,43 +461,67 @@ export const KPICards: React.FC<KPICardsProps> = React.memo(({ metrics, visibleC
   const anomalyDelta = getDelta(anomalyHistory, 'anomalyCount', 'Nominal');
 
   return (
-    <div className="flex flex-col space-y-5 px-6 py-5 border-b border-slate-200/80 bg-[#F6F6F6] font-sans select-none w-full flex-shrink-0">
+    <div className="flex flex-col space-y-5 px-6 py-5 bg-[#F6F6F6] font-sans select-none w-full flex-shrink-0">
       
       {/* Top Row: Hero Card (60% width) + Grid (40% width) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         
         {/* Tier 1: Hero Savings Card (Spans 2 columns on lg screens) */}
-        <div className="lg:col-span-2 flex flex-col justify-between bg-white border border-slate-250/70 rounded-[24px] p-6.5 relative overflow-hidden transition-all hover:shadow-sm hover:border-slate-350 group">
+        <div className="lg:col-span-2 flex flex-col justify-between bg-white border border-slate-200/50 rounded-[24px] p-6 relative overflow-hidden transition-all hover:shadow-sm hover:border-slate-300 group min-h-[300px]">
           <div className="flex items-start justify-between z-10">
-            <div className="flex flex-col space-y-1.5">
-              <div className="flex items-center space-x-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#ADFF41]" />
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">PRIMARY FINANCIAL SAVINGS</span>
+            {/* Left: Icon, Title, and Value */}
+            <div className="flex-1 flex flex-col justify-between h-full min-h-[120px]">
+              {/* Header: Icon + Title */}
+              <div className="flex items-center space-x-3.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100/50 flex-shrink-0">
+                  <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">PRIMARY FINANCIAL SAVINGS</span>
+                  <span className="text-[10px] font-bold text-slate-400 mt-1 leading-none">Total Annual Savings</span>
+                </div>
               </div>
-              <h2 className="text-[10px] font-bold text-slate-500">Total Annual Savings</h2>
+
+              {/* Main value display */}
+              <div className="mt-6">
+                <span className="text-4xl font-black text-slate-900 tracking-tight font-mono leading-none">
+                  {formatUSD(metrics.totalSavingsUSD)}
+                </span>
+                <div className="flex items-center space-x-2 mt-2.5 text-[10px]">
+                  <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-500 font-bold text-[9px]">
+                    ↓ 2.0%
+                  </span>
+                  <span className="text-rose-500 font-bold">vs baseline</span>
+                  <span className="text-slate-400 font-medium">vs baseline projection</span>
+                </div>
+              </div>
             </div>
-            <div className="w-9 h-9 rounded-xl bg-[#014D3E] flex items-center justify-center text-[#ADFF41] border border-[#014D3E]">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.214.128c.31.187.665.3 1.036.3 1.13 0 2.05-.917 2.05-2.05s-.92-2.05-2.05-2.05H11.5a2.05 2.05 0 00-2.05 2.05c0 1.133.92 2.05 2.05 2.05h.086m-.086 0H12m0-8.818l.214-.128c.31-.187.665-.3 1.036-.3 1.13 0 2.05.917 2.05 2.05s-.92 2.05-2.05 2.05H12.5a2.05 2.05 0 01-2.05-2.05c0-1.133.92-2.05 2.05-2.05h.086m-.086 0H12" />
-              </svg>
+
+            {/* Right: Projected Baseline Box & Status Pill */}
+            <div className="flex flex-col items-end space-y-3 z-10 flex-shrink-0 pl-4">
+              {/* Live telemetry pill */}
+              <div className="flex items-center px-2 py-0.5 bg-emerald-50 border border-emerald-100/60 rounded-full text-[9px] font-bold text-emerald-605">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 blink-indicator" />
+                Live
+              </div>
+
+              {/* Projected Box */}
+              <div className="border border-slate-200/50 bg-slate-50/50 rounded-xl p-3.5 flex flex-col justify-between w-36 h-20 shadow-2xs">
+                <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider leading-none">Projected (Baseline)</span>
+                <span className="text-[12px] font-black text-slate-900 leading-none font-mono mt-1.5">$1.58B</span>
+                <div className="flex items-center justify-between text-[9px] font-bold mt-2">
+                  <span className="text-slate-400 font-medium">Variance</span>
+                  <span className="text-rose-500 font-mono">↓ 2.0%</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="mt-6 mb-8 z-10">
-            <span className="text-4xl font-black text-slate-900 tracking-tight font-mono leading-none">
-              {formatUSD(metrics.totalSavingsUSD)}
-            </span>
-            <div className="flex items-center space-x-2 mt-2.5 text-[10px]">
-              <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold ${savingsDelta.colorClass.includes('emerald') ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                {savingsDelta.text}
-              </span>
-              <span className="text-slate-400 font-medium">vs baseline projection</span>
-            </div>
-          </div>
-
-          {/* Large custom hero double-wave */}
-          <div className="absolute inset-x-0 bottom-0 h-16 z-0">
-            {renderHeroSparkline(savingsHistory, '#10B981')}
+          {/* Large custom savings timeline chart */}
+          <div className="absolute inset-x-0 bottom-0 h-36 z-0">
+            {renderSavingsChart(savingsHistory)}
           </div>
         </div>
 
@@ -421,106 +529,130 @@ export const KPICards: React.FC<KPICardsProps> = React.memo(({ metrics, visibleC
         <div className="grid grid-cols-2 gap-4">
           
           {/* Card A: Average ROI (Tier 2 - Purple Accent - Speedometer Gauge) */}
-          <div className="flex bg-white border border-slate-200/85 rounded-[20px] p-5 relative overflow-hidden transition-all hover:shadow-xs hover:border-slate-350 items-center justify-between">
-            <div className="flex flex-col justify-between h-full">
+          <div className="flex flex-col justify-between bg-white border border-slate-200/60 rounded-[20px] p-5 relative overflow-hidden transition-all hover:shadow-xs hover:border-slate-300">
+            <div className="flex items-start justify-between w-full">
               <div className="flex flex-col">
-                <span className="text-[9px] font-black text-purple-450 uppercase tracking-widest leading-none">AVERAGE ROI</span>
+                <span className="text-[9px] font-black text-purple-500 uppercase tracking-widest leading-none">AVERAGE ROI</span>
                 <span className="text-[9px] font-bold text-slate-400 mt-1 leading-none">Performance scale</span>
               </div>
-              <div className="mt-4">
-                <span className="text-xl font-black text-slate-900 font-mono tracking-tight">
+              <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100/50 flex-shrink-0">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+                </svg>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between mt-2.5">
+              <div className="flex flex-col">
+                <span className="text-xl font-black text-slate-900 font-mono tracking-tight leading-none">
                   {metrics.averageROI.toFixed(1)}%
                 </span>
-                <div className="text-[8.5px] mt-1 text-slate-400 font-bold leading-none">
+                <div className="text-[8.5px] mt-1.5 text-slate-400 font-bold leading-none">
                   <span className={roiDelta.colorClass}>{roiDelta.text}</span>
                 </div>
               </div>
-            </div>
-            <div className="flex items-center justify-center flex-shrink-0 ml-4 relative">
-              {renderROIGauge(metrics.averageROI)}
-              <div className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-purple-650 font-mono">
-                {metrics.averageROI.toFixed(0)}%
+              <div className="flex items-center justify-center flex-shrink-0 relative">
+                {renderROIGauge(metrics.averageROI)}
+                <div className="absolute inset-0 flex items-center justify-center text-[9px] font-black text-purple-650 font-mono">
+                  {metrics.averageROI.toFixed(0)}%
+                </div>
               </div>
             </div>
           </div>
 
           {/* Card B: Active Projects (Tier 3 - Blue Accent - Progress Donut) */}
-          <div className="flex bg-white border border-slate-200/85 rounded-[20px] p-5 relative overflow-hidden transition-all hover:shadow-xs hover:border-slate-355 items-center justify-between">
-            <div className="flex flex-col justify-between h-full">
+          <div className="flex flex-col justify-between bg-white border border-slate-200/60 rounded-[20px] p-5 relative overflow-hidden transition-all hover:shadow-xs hover:border-slate-300">
+            <div className="flex items-start justify-between w-full">
               <div className="flex flex-col">
-                <span className="text-[9px] font-black text-blue-450 uppercase tracking-widest leading-none">ACTIVE PROJECTS</span>
+                <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest leading-none">ACTIVE PROJECTS</span>
                 <span className="text-[9px] font-bold text-slate-400 mt-1 leading-none">Filter coverage</span>
               </div>
-              <div className="mt-4">
-                <span className="text-xl font-black text-slate-900 font-mono tracking-tight">
-                  {visibleCount.toLocaleString()}
-                </span>
-                <span className="text-[9px] font-bold text-slate-400 ml-1">/ {metrics.totalProjects.toLocaleString()}</span>
-                <div className="text-[8.5px] mt-1 text-slate-400 font-bold leading-none">
+              <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-650 flex items-center justify-center border border-blue-100/50 flex-shrink-0">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12a2.25 2.25 0 0 1 2.25-2.25h15A2.25 2.25 0 0 1 21.75 12v.75m-18 0v8.25A2.25 2.25 0 0 0 6 23.25h12A2.25 2.25 0 0 0 20.25 21v-8.25m-18 0h18" />
+                </svg>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between mt-2.5">
+              <div className="flex flex-col">
+                <div className="flex items-baseline leading-none">
+                  <span className="text-xl font-black text-slate-900 font-mono tracking-tight">
+                    {visibleCount.toLocaleString()}
+                  </span>
+                  <span className="text-[9px] font-bold text-slate-400 ml-1">/ {metrics.totalProjects.toLocaleString()}</span>
+                </div>
+                <div className="text-[8.5px] mt-1.5 text-slate-400 font-bold leading-none">
                   <span className={projectsDelta.colorClass}>{projectsDelta.text}</span>
                 </div>
               </div>
-            </div>
-            <div className="flex items-center justify-center flex-shrink-0 ml-4 relative">
-              {renderProjectsDonut(visibleCount, metrics.totalProjects)}
-              <div className="absolute inset-0 flex items-center justify-center text-[9px] font-black text-blue-600 font-mono">
-                {((visibleCount / (metrics.totalProjects || 1)) * 100).toFixed(0)}%
+              <div className="flex items-center justify-center flex-shrink-0 relative">
+                {renderProjectsDonut(visibleCount, metrics.totalProjects)}
+                <div className="absolute inset-0 flex items-center justify-center text-[9px] font-black text-blue-600 font-mono">
+                  {((visibleCount / (metrics.totalProjects || 1)) * 100).toFixed(0)}%
+                </div>
               </div>
             </div>
           </div>
 
           {/* Card C: Robots Deployed (Tier 3 - Emerald Accent - Segment Status Grid) */}
-          <div className="flex flex-col justify-between bg-white border border-slate-200/85 rounded-[20px] p-5 relative overflow-hidden transition-all hover:shadow-xs hover:border-slate-350">
-            <div className="flex items-center justify-between">
-              <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest leading-none">ROBOTS STATUS</span>
-              <div className="flex items-center space-x-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[8px] font-bold text-emerald-600 uppercase tracking-wider">Telemetry Live</span>
+          <div className="flex flex-col justify-between bg-white border border-slate-200/60 rounded-[20px] p-5 relative overflow-hidden transition-all hover:shadow-xs hover:border-slate-300">
+            <div className="flex items-start justify-between w-full">
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black text-emerald-605 uppercase tracking-widest leading-none">ROBOTS STATUS</span>
+                <span className="text-[8px] font-bold text-emerald-500 uppercase tracking-wider mt-1.5 flex items-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 blink-indicator" />
+                  Telemetry Live
+                </span>
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100/50 flex-shrink-0">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                  <rect x="3" y="6" width="18" height="12" rx="2" />
+                  <path d="M8 12h.01M16 12h.01M9 16h6" strokeLinecap="round" />
+                  <path d="M12 6V3m0 0h-2m2 0h2" strokeLinecap="round" />
+                </svg>
               </div>
             </div>
+            
             <div className="mt-2.5">
-              <span className="text-xl font-black text-slate-900 font-mono tracking-tight">
+              <span className="text-xl font-black text-slate-900 font-mono tracking-tight leading-none">
                 {metrics.totalRobots.toLocaleString()}
               </span>
               <span className="text-[9px] font-bold text-slate-400 ml-1">Deployed</span>
-              <div className="text-[8.5px] mt-1 font-bold leading-none text-slate-400">
+              <div className="text-[8.5px] mt-1.5 font-bold leading-none text-slate-400">
                 <span className={robotsDelta.colorClass}>{robotsDelta.text}</span>
               </div>
             </div>
+            
             {/* Segmented operational status micro indicators */}
-            <div className="flex space-x-1 items-center h-2 mt-4 select-none">
-              <span className="h-1 flex-1 rounded bg-emerald-500 animate-pulse" style={{ animationDelay: '100ms' }} />
-              <span className="h-1 flex-1 rounded bg-emerald-500 animate-pulse" style={{ animationDelay: '200ms' }} />
-              <span className="h-1 flex-1 rounded bg-emerald-500 animate-pulse" style={{ animationDelay: '300ms' }} />
-              <span className="h-1 flex-1 rounded bg-emerald-500 animate-pulse" style={{ animationDelay: '400ms' }} />
-              <span className="h-1 flex-1 rounded bg-emerald-500 animate-pulse" style={{ animationDelay: '500ms' }} />
-              <span className="h-1 flex-1 rounded bg-emerald-500 animate-pulse" style={{ animationDelay: '600ms' }} />
-              <span className="h-1 flex-1 rounded bg-emerald-500 animate-pulse" style={{ animationDelay: '700ms' }} />
-              <span className="h-1 flex-1 rounded bg-emerald-500 animate-pulse" style={{ animationDelay: '800ms' }} />
-              <span className="h-1 flex-1 rounded bg-emerald-500 animate-pulse" style={{ animationDelay: '900ms' }} />
-              <span className={`h-1 flex-1 rounded ${metrics.anomalyCount > 0 ? 'bg-rose-500' : 'bg-emerald-500 animate-pulse'}`} style={{ animationDelay: '1000ms' }} />
+            <div className="h-6 w-full mt-3 overflow-hidden select-none">
+              {renderHeroBars(robotsHistory.length > 0 ? robotsHistory : [12, 15, 8, 14, 18, 10, 16, 20, 22, 17, 19, 21, 14, 18, 20, 24, 28, 25, 23, 26, 28])}
             </div>
           </div>
 
           {/* Card D: Hours Saved (Tier 3 - Indigo/Blue Accent) */}
-          <div className="flex flex-col justify-between bg-white border border-slate-200/80 rounded-[20px] p-5 relative overflow-hidden transition-all hover:shadow-xs hover:border-slate-350">
-            <div className="flex items-center justify-between">
-              <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest leading-none">HOURS SAVED</span>
-              <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-650 border border-indigo-100/50">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0" />
+          <div className="flex flex-col justify-between bg-white border border-slate-200/60 rounded-[20px] p-5 relative overflow-hidden transition-all hover:shadow-xs hover:border-slate-300">
+            <div className="flex items-start justify-between w-full">
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest leading-none">HOURS SAVED</span>
+                <span className="text-[9px] font-bold text-slate-400 mt-1 leading-none">Clock indicator</span>
+              </div>
+              <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-650 flex items-center justify-center border border-indigo-100/50 flex-shrink-0">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
-            <div className="mt-4 mb-5">
-              <span className="text-xl font-black text-slate-900 font-mono tracking-tight">
+            
+            <div className="mt-2.5 mb-2">
+              <span className="text-xl font-black text-slate-900 font-mono tracking-tight leading-none">
                 {formatHours(metrics.totalHoursSaved)}
               </span>
-              <div className="text-[8.5px] mt-1 text-slate-400 font-bold">
+              <div className="text-[8.5px] mt-1.5 text-slate-400 font-bold leading-none">
                 <span className={hoursDelta.colorClass}>{hoursDelta.text}</span>
               </div>
             </div>
-            <div className="absolute inset-x-0 bottom-0 h-5">
+            <div className="h-6 w-full select-none overflow-hidden mt-1">
               {renderSparkline(hoursHistory, '#6366F1')}
             </div>
           </div>
@@ -533,37 +665,83 @@ export const KPICards: React.FC<KPICardsProps> = React.memo(({ metrics, visibleC
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         
         {/* Card 5: AI Core Ratio */}
-        <div className="flex items-center justify-between bg-white border border-slate-200/60 rounded-xl px-4.5 py-3.5 transition-all hover:border-slate-350">
-          <div className="flex flex-col space-y-0.5">
-            <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider">AI Core Ratio</span>
-            <span className="text-sm font-black text-slate-800 font-mono">{aiPercent.toFixed(1)}%</span>
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-4.5 flex flex-col justify-between hover:border-slate-300 transition-all select-none">
+          <div className="flex items-center w-full">
+            {/* Brain icon rounded box */}
+            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100/50 mr-3.5 flex-shrink-0">
+              <svg className="w-5.5 h-5.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75-3.75h7.5M12 15.75a3 3 0 0 1-3-3v-.75m3 3.75a3 3 0 0 0 3-3v-.75" />
+              </svg>
+            </div>
+            
+            {/* Title and Value details */}
+            <div className="flex-grow min-w-0">
+              <div className="flex items-center justify-between">
+                <span className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider leading-none">AI CORE RATIO</span>
+                <span className={`text-[9px] font-bold ${aiDelta.colorClass}`}>{aiDelta.text}</span>
+              </div>
+              <div className="text-base font-black text-slate-800 font-mono mt-1 leading-none">{aiPercent.toFixed(1)}%</div>
+            </div>
           </div>
-          <span className={`text-[8.5px] font-bold ${aiDelta.colorClass}`}>{aiDelta.text}</span>
+          
+          {/* Linear Progress Bar */}
+          <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3.5 overflow-hidden">
+            <div className="h-full bg-purple-500 rounded-full" style={{ width: `${aiPercent}%` }} />
+          </div>
         </div>
 
         {/* Card 6: Cloud Base Ratio */}
-        <div className="flex items-center justify-between bg-white border border-slate-200/60 rounded-xl px-4.5 py-3.5 transition-all hover:border-slate-350">
-          <div className="flex flex-col space-y-0.5">
-            <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider">Cloud Base Ratio</span>
-            <span className="text-sm font-black text-slate-800 font-mono">{cloudPercent.toFixed(1)}%</span>
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-4.5 flex flex-col justify-between hover:border-slate-300 transition-all select-none">
+          <div className="flex items-center w-full">
+            {/* Cloud icon rounded box */}
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-650 flex items-center justify-center border border-blue-100/50 mr-3.5 flex-shrink-0">
+              <svg className="w-5.5 h-5.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 00.332-7.482 3.5 3.5 0 00-6.682-1.018 3 3 0 00-4.65 3.224A3 3 0 002.25 15z" />
+              </svg>
+            </div>
+            
+            {/* Title and Value details */}
+            <div className="flex-grow min-w-0">
+              <div className="flex items-center justify-between">
+                <span className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider leading-none">CLOUD BASE RATIO</span>
+                <span className={`text-[9px] font-bold ${cloudDelta.colorClass}`}>{cloudDelta.text}</span>
+              </div>
+              <div className="text-base font-black text-slate-800 font-mono mt-1 leading-none">{cloudPercent.toFixed(1)}%</div>
+            </div>
           </div>
-          <span className={`text-[8.5px] font-bold ${cloudDelta.colorClass}`}>{cloudDelta.text}</span>
+          
+          {/* Linear Progress Bar */}
+          <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3.5 overflow-hidden">
+            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${cloudPercent}%` }} />
+          </div>
         </div>
 
         {/* Card 7: System Incidents */}
-        <div className={`flex items-center justify-between border rounded-xl px-4.5 py-3.5 transition-all ${
-          metrics.anomalyCount > 0 
-            ? 'bg-rose-50/50 border-rose-200/60 hover:border-rose-350' 
-            : 'bg-white border-slate-200/60 hover:border-slate-300'
-        }`}>
-          <div className="flex items-center space-x-2">
-            {metrics.anomalyCount > 0 && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />}
-            <div className="flex flex-col space-y-0.5">
-              <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider">System Incidents</span>
-              <span className={`text-sm font-black font-mono ${metrics.anomalyCount > 0 ? 'text-rose-600' : 'text-slate-800'}`}>{metrics.anomalyCount}</span>
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-4.5 flex flex-col justify-between hover:border-slate-300 transition-all select-none">
+          <div className="flex items-center w-full">
+            {/* Shield icon rounded box */}
+            <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100/50 mr-3.5 flex-shrink-0">
+              <svg className="w-5.5 h-5.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.751A11.956 11.956 0 0 1 12 5.714z" />
+              </svg>
+            </div>
+            
+            {/* Title and Value details */}
+            <div className="flex-grow min-w-0">
+              <div className="flex items-center justify-between">
+                <span className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider leading-none">SYSTEM INCIDENTS</span>
+                <span className={`text-[9px] font-bold ${anomalyDelta.colorClass}`}>{anomalyDelta.text}</span>
+              </div>
+              <div className="text-base font-black text-slate-800 font-mono mt-1 leading-none">{metrics.anomalyCount}</div>
             </div>
           </div>
-          <span className={`text-[8.5px] font-bold ${anomalyDelta.colorClass}`}>{anomalyDelta.text}</span>
+          
+          {/* Dashed orange line */}
+          <div className="w-full h-1.5 mt-3.5">
+            <svg className="w-full h-full" viewBox="0 0 100 2" preserveAspectRatio="none">
+              <line x1="0" y1="1" x2="100" y2="1" stroke="#F97316" strokeWidth="1" strokeDasharray="3 3" />
+            </svg>
+          </div>
         </div>
 
       </div>
