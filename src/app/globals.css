@@ -106,21 +106,21 @@ body {
 /* Preloader Animations */
 @keyframes pulseGlow {
   0%, 100% {
-    transform: scale(1);
+    transform: scale(1) translateY(0);
     filter: drop-shadow(0 0 15px rgba(173, 255, 65, 0.15));
   }
   50% {
-    transform: scale(1.04);
+    transform: scale(1.04) translateY(-6px);
     filter: drop-shadow(0 0 35px rgba(173, 255, 65, 0.45));
   }
 }
 
 @keyframes progressFlow {
   0% {
-    width: 0%;
+    transform: translateX(-100%);
   }
   100% {
-    width: 100%;
+    transform: translateX(200%);
   }
 }
 
@@ -140,6 +140,6 @@ body {
   left: 0;
   height: 100%;
   width: 50%;
-  background: linear-gradient(90deg, transparent, rgba(173, 255, 65, 0.4), transparent);
-  animation: progressFlow 1.8s infinite ease-in-out;
+  background: linear-gradient(90deg, transparent, rgba(173, 255, 65, 0.45), transparent);
+  animation: progressFlow 1.5s infinite linear;
 }
