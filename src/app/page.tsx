@@ -29,7 +29,7 @@ export default function Page() {
     const loadBaselineAndStartStream = async () => {
       try {
         setLoadStatus('FETCHING DATABASE BASELINE (50,000 ROWS)...');
-        await new Promise(r => setTimeout(r, 1500)); // Artificial delay for professional feel
+        await new Promise(r => setTimeout(r, 600)); // Reduced artificial delay
 
         const response = await fetch('/automation_projects.csv');
         if (!response.ok) {
@@ -37,7 +37,7 @@ export default function Page() {
         }
 
         setLoadStatus('PARSING DATAFRAME IN-MEMORY...');
-        await new Promise(r => setTimeout(r, 1000)); // Artificial delay
+        await new Promise(r => setTimeout(r, 400)); // Reduced artificial delay
         const csvText = await response.text();
         
         // Highly optimized simple comma split matching dataStream parser
