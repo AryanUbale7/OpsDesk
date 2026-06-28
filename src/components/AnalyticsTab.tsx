@@ -1,9 +1,13 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { RowStore } from '@/engine/RowStore';
 import { StreamManager } from '@/engine/StreamManager';
 import { KPIMetrics } from '@/engine/types';
+import { Chart, registerables } from 'chart.js';
+import { DateRangePicker } from './DateRangePicker';
+
+Chart.register(...registerables);
 
 interface AnalyticsTabProps {
   store: RowStore;
@@ -13,7 +17,144 @@ interface AnalyticsTabProps {
 
 export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ store, streamManager, metrics }) => {
   const [timeRange, setTimeRange] = useState('30D');
+  const [calendarRange, setCalendarRange] = useState('This Year');
   const [sortBy, setSortBy] = useState('ROI');
+
+  const roiChartRef = useRef<HTMLCanvasElement | null>(null);
+  const hoursChartRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    let roiChartInstance: Chart | null = null;
+    let hoursChartInstance: Chart | null = null;
+
+    if (roiChartRef.current) {
+      const ctx = roiChartRef.current.getContext('2d');
+      if (ctx) {
+        const gradient = ctx.createLinearGradient(0, 0, 0, 150);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+        roiChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: ['Sep 01', 'Sep 05', 'Sep 10', 'Sep 15', 'Sep 20', 'Sep 25', 'Sep 30'],
+            datasets: [{
+              label: 'ROI',
+              data: [1.0, 1.2, 1.15, 1.5, 1.8, 2.2, 2.4],
+              borderColor: '#10b981',
+              backgroundColor: gradient,
+              fill: true,
+              tension: 0.4,
+              borderWidth: 2.5,
+              pointRadius: 0,
+              pointHoverRadius: 6,
+              pointHoverBackgroundColor: '#10b981',
+              pointHoverBorderColor: '#ffffff',
+              pointHoverBorderWidth: 2,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                titleFont: { size: 10, weight: 'bold' },
+                bodyFont: { size: 11, weight: 'bold' },
+                padding: 10,
+                cornerRadius: 12,
+                displayColors: false,
+                callbacks: {
+                  label: (context) => `$${context.raw}M`
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: '#94a3b8', font: { size: 9, weight: 'bold' } }
+              },
+              y: {
+                grid: { color: '#f8fafc' },
+                border: { dash: [4, 4] },
+                ticks: {
+                  color: '#94a3b8',
+                  font: { size: 9, weight: 'bold' },
+                  callback: (val) => `$${val}M`
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    if (hoursChartRef.current) {
+      const ctx = hoursChartRef.current.getContext('2d');
+      if (ctx) {
+        hoursChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6'],
+            datasets: [{
+              label: 'Hours Saved',
+              data: [8500, 11000, 9200, 14520, 10200, 12000],
+              backgroundColor: [
+                'rgba(139, 92, 246, 0.35)',
+                'rgba(139, 92, 246, 0.35)',
+                'rgba(139, 92, 246, 0.35)',
+                '#7c3aed',
+                'rgba(139, 92, 246, 0.35)',
+                'rgba(139, 92, 246, 0.35)'
+              ],
+              borderRadius: 6,
+              borderSkipped: false,
+              barThickness: 20
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                titleFont: { size: 10, weight: 'bold' },
+                bodyFont: { size: 11, weight: 'bold' },
+                padding: 10,
+                cornerRadius: 12,
+                displayColors: false,
+                callbacks: {
+                  label: (context) => `${Number(context.raw).toLocaleString()} hrs`
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: '#94a3b8', font: { size: 9, weight: 'bold' } }
+              },
+              y: {
+                grid: { color: '#f8fafc' },
+                border: { dash: [4, 4] },
+                ticks: {
+                  color: '#94a3b8',
+                  font: { size: 9, weight: 'bold' },
+                  callback: (val) => Number(val).toLocaleString()
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    return () => {
+      if (roiChartInstance) roiChartInstance.destroy();
+      if (hoursChartInstance) hoursChartInstance.destroy();
+    };
+  }, []);
 
   // Dynamic Department Performance data binding with high-fidelity mockup fallbacks
   const departmentPerformance = useMemo(() => {
@@ -143,7 +284,10 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ store, streamManager
             {['7D', '30D', 'Q3', 'YTD'].map(range => (
               <button
                 key={range}
-                onClick={() => setTimeRange(range)}
+                onClick={() => {
+                  setTimeRange(range);
+                  setCalendarRange(range);
+                }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   timeRange === range
                     ? 'bg-[#014D3E] text-white shadow-sm'
@@ -155,13 +299,10 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ store, streamManager
             ))}
           </div>
 
-          {/* Calendar Selector */}
-          <button className="bg-white border border-slate-200/80 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 flex items-center shadow-sm hover:bg-slate-50 transition-colors">
-            <svg className="w-3.5 h-3.5 mr-2 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-            </svg>
-            Calendar
-          </button>
+          <DateRangePicker value={calendarRange} onChange={(val) => {
+            setCalendarRange(val);
+            setTimeRange('Custom');
+          }} />
         </div>
       </div>
 
@@ -195,39 +336,9 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ store, streamManager
             </div>
           </div>
 
-          {/* Interactive Graph Tooltip Overlay */}
-          <div className="absolute right-[22%] top-[15%] z-20 bg-white border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-xl p-2.5 text-center font-bold flex flex-col select-none pointer-events-none">
-            <span className="text-[9px] text-slate-400 leading-none">Sep 24</span>
-            <span className="text-[12px] font-black text-[#014D3E] font-mono leading-none mt-1">$2.4M</span>
-          </div>
-
-          {/* SVG Line Graph with Area Gradient */}
+          {/* Chart.js Canvas */}
           <div className="flex-1 w-full relative min-h-0 mt-3 select-none">
-            <svg className="w-full h-full overflow-visible" viewBox="0 0 350 90" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="gradient-roi-trends" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.18" />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-              {/* Grid line guidelines */}
-              <line x1="10" y1="80" x2="340" y2="80" stroke="#F6F6F6" strokeWidth="1" />
-
-              {/* Area filled path */}
-              <path d="M 10 75 Q 80 62 160 65 T 270 20 T 340 18 L 340 80 L 10 80 Z" fill="url(#gradient-roi-trends)" />
-              {/* ROI Line path */}
-              <path d="M 10 75 Q 80 62 160 65 T 270 20 T 340 18" fill="none" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round" />
-
-              {/* Grid dot indicator matching Sep 24 popover */}
-              <line x1="270" y1="20" x2="270" y2="80" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2.2 2.2" />
-              <circle cx="270" cy="20" r="4.5" fill="#10b981" stroke="#FFFFFF" strokeWidth="1.8" />
-
-              {/* X Axis Date Labels */}
-              <text x="10" y="89" textAnchor="start" className="fill-slate-400 text-[8px] font-bold">Sep 01</text>
-              <text x="120" y="89" textAnchor="middle" className="fill-slate-400 text-[8px] font-bold">Sep 10</text>
-              <text x="230" y="89" textAnchor="middle" className="fill-slate-400 text-[8px] font-bold">Sep 20</text>
-              <text x="330" y="89" textAnchor="end" className="fill-slate-400 text-[8px] font-bold">Sep 30</text>
-            </svg>
+            <canvas ref={roiChartRef} className="w-full h-full" />
           </div>
         </div>
 
@@ -259,44 +370,9 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ store, streamManager
             </div>
           </div>
 
-          {/* Bar Chart tooltip popover overlay */}
-          <div className="absolute left-[54%] top-[15%] z-20 bg-white border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-xl p-2.5 text-center font-bold flex flex-col select-none pointer-events-none">
-            <span className="text-[9px] text-slate-400 leading-none">W4</span>
-            <span className="text-[12px] font-black text-[#014D3E] font-mono leading-none mt-1">14,520 hrs</span>
-          </div>
-
-          {/* SVG Weekly Bar Chart */}
-          <div className="flex-1 w-full flex items-end justify-between px-2 pt-6 relative min-h-0 select-none">
-            {/* W1 */}
-            <div className="flex flex-col items-center space-y-2 flex-1">
-              <div className="w-[22px] bg-purple-100/70 rounded-md h-[40px] transition-all hover:bg-purple-200" />
-              <span className="text-[8px] font-bold text-slate-400">W1</span>
-            </div>
-            {/* W2 */}
-            <div className="flex flex-col items-center space-y-2 flex-1">
-              <div className="w-[22px] bg-purple-100/70 rounded-md h-[55px] transition-all hover:bg-purple-200" />
-              <span className="text-[8px] font-bold text-slate-400">W2</span>
-            </div>
-            {/* W3 */}
-            <div className="flex flex-col items-center space-y-2 flex-1">
-              <div className="w-[22px] bg-purple-100/70 rounded-md h-[45px] transition-all hover:bg-purple-200" />
-              <span className="text-[8px] font-bold text-slate-400">W3</span>
-            </div>
-            {/* W4 (Highlighted Purple Bar) */}
-            <div className="flex flex-col items-center space-y-2 flex-1">
-              <div className="w-[22px] bg-purple-700 rounded-md h-[78px] transition-all shadow-sm" />
-              <span className="text-[8px] font-black text-slate-800">W4</span>
-            </div>
-            {/* W5 */}
-            <div className="flex flex-col items-center space-y-2 flex-1">
-              <div className="w-[22px] bg-purple-100/70 rounded-md h-[50px] transition-all hover:bg-purple-200" />
-              <span className="text-[8px] font-bold text-slate-400">W5</span>
-            </div>
-            {/* W6 */}
-            <div className="flex flex-col items-center space-y-2 flex-1">
-              <div className="w-[22px] bg-purple-100/70 rounded-md h-[60px] transition-all hover:bg-purple-200" />
-              <span className="text-[8px] font-bold text-slate-400">W6</span>
-            </div>
+          {/* Chart.js Canvas */}
+          <div className="flex-1 w-full relative min-h-0 mt-3 select-none">
+            <canvas ref={hoursChartRef} className="w-full h-full" />
           </div>
         </div>
 
