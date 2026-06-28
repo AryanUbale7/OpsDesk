@@ -1,0 +1,104 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --panel-bg: #ffffff;
+  --panel-rail-bg: #f8fafc; /* pale gray */
+  --border-color: #e2e8f0; /* hairline border */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --scrollbar-track: #f1f5f9;
+  --scrollbar-thumb: #cbd5e1;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.dark {
+  --background: #020617;
+  --foreground: #f8fafc;
+  --panel-bg: #0b0f19;
+  --panel-rail-bg: #020617;
+  --border-color: #1e293b;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  --scrollbar-track: rgba(15, 23, 42, 0.6);
+  --scrollbar-thumb: rgba(51, 65, 85, 0.8);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  overflow: hidden; /* Prevent body scroll since dashboard uses flex containers */
+  height: 100vh;
+  margin: 0;
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 2px;
+}
+
+/* Custom Alert & Update Flash Keyframes */
+@keyframes cellFlashUpdate {
+  0% {
+    background-color: rgba(16, 185, 129, 0.15); /* light emerald glow */
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes cellFlashAlert {
+  0% {
+    background-color: rgba(239, 68, 68, 0.18); /* light rose alert glow */
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Flash classes - applied programmatically, removed via animationend bubbling */
+.flash-update-cell {
+  animation: cellFlashUpdate 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.flash-alert-cell {
+  animation: cellFlashAlert 1.0s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Real-time blinkers for warnings */
+@keyframes indicatorBlink {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+}
+
+.blink-indicator {
+  animation: indicatorBlink 1.8s infinite ease-in-out;
+}
+
+/* Clean styling for table header cells */
+.table-header-cell {
+  @apply px-4 py-2 text-left text-[9px] font-bold uppercase tracking-wider text-slate-400 border-r border-b border-slate-100 bg-slate-50;
+  user-select: none;
+}
