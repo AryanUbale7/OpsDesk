@@ -10,14 +10,15 @@ interface SidebarFiltersProps {
   isOpen: boolean;
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  toggleSidebar?: () => void;
 }
 
 export const SidebarFilters: React.FC<SidebarFiltersProps> = React.memo(({
   isOpen,
   activeTab,
   setActiveTab,
+  toggleSidebar,
 }) => {
-  if (!isOpen) return null;
 
   const mainNavItems = [
     {
@@ -92,7 +93,20 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = React.memo(({
   ];
 
   return (
-    <div className="w-[200px] flex flex-col bg-white border-r border-slate-200/80 h-full font-sans select-none flex-shrink-0">
+    <>
+      {/* Mobile/Tablet Backdrop overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs z-40 lg:hidden cursor-pointer"
+          onClick={toggleSidebar}
+        />
+      )}
+      <div 
+        className={`fixed inset-y-0 left-0 w-[200px] flex flex-col bg-white border-r border-slate-200/80 h-full font-sans select-none z-50
+          transition-transform duration-200 ease-in-out lg:static lg:translate-x-0 lg:z-auto lg:shadow-none shadow-2xl
+          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:hidden'}
+        `}
+      >
       
       {/* Logo + Brand */}
       <div className="flex items-center px-4 py-3 border-b border-slate-100">
@@ -118,7 +132,12 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = React.memo(({
             <button
               type="button"
               key={item.name}
-              onClick={() => setActiveTab(item.name)}
+              onClick={() => {
+                setActiveTab(item.name);
+                if (typeof window !== 'undefined' && window.innerWidth < 1024 && toggleSidebar) {
+                  toggleSidebar();
+                }
+              }}
               className={`flex items-center w-full px-3 py-2.5 rounded-xl text-left transition-all duration-150 group border border-transparent focus:outline-none ${
                 isActive
                   ? 'bg-[#014D3E] text-white shadow-sm'
@@ -144,7 +163,12 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = React.memo(({
         {/* Settings */}
         <button
           type="button"
-          onClick={() => setActiveTab('Settings')}
+          onClick={() => {
+            setActiveTab('Settings');
+            if (typeof window !== 'undefined' && window.innerWidth < 1024 && toggleSidebar) {
+              toggleSidebar();
+            }
+          }}
           className={`flex items-center w-full px-3 py-2.5 rounded-xl text-left transition-all duration-150 group border border-transparent focus:outline-none ${
             activeTab === 'Settings'
               ? 'bg-[#014D3E] text-white shadow-sm'
@@ -191,6 +215,7 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = React.memo(({
       </div>
 
     </div>
+    </>
   );
 });
 

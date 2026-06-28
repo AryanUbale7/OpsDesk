@@ -245,6 +245,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ store, streamMan
         isOpen={sidebarOpen}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        toggleSidebar={toggleSidebar}
       />
 
       {/* Right Column Content Area */}
