@@ -769,6 +769,7 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
           </div>
 
         </div>
+        </>
       )}
 
       {/* Floating Notifications */}
