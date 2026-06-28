@@ -121,15 +121,6 @@ export class DOMRenderer {
   // Custom columns configuration matching the project page mockup exactly
   public columns: ColumnConfig[] = [
     {
-      key: 'selected',
-      width: 40,
-      label: '',
-      getValue: (r) => r.project_id === 'PRJ-8902',
-      getText: (v) => v ? '☒' : '☐',
-      getClass: (v) => v ? 'text-[#014D3E] font-bold text-center w-full block' : 'text-slate-300 text-center w-full block',
-      align: 'center',
-    },
-    {
       key: 'project_id',
       width: 120,
       label: 'Project ID',

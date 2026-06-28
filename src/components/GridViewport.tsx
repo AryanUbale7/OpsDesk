@@ -286,10 +286,10 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
       <div className="flex-1 flex flex-col overflow-hidden min-w-0 h-full">
       
       {/* Top Row: Saved Views + Tabs + Search */}
-      <div className="flex items-center justify-between px-5 pt-4 pb-0 flex-shrink-0">
-        {/* Saved Views Dropdown */}
-        <div className="flex items-center">
-          <button className="flex items-center px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-4 pb-0 flex-shrink-0 w-full">
+        {/* Saved Views Dropdown & Export */}
+        <div className="flex items-center w-full md:w-auto justify-between md:justify-start">
+          <button className="hidden md:flex items-center px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer shadow-sm">
             <svg className="w-3.5 h-3.5 mr-1.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
             </svg>
@@ -301,7 +301,7 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
 
           <button 
             onClick={handleExportCSV}
-            className="ml-2 flex items-center px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer shadow-sm"
+            className="md:ml-2 flex flex-1 md:flex-none justify-center items-center px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer shadow-sm"
           >
             <svg className="w-3.5 h-3.5 mr-1.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -311,8 +311,8 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
         </div>
 
         {/* Right Side Search */}
-        <div className="flex items-center">
-          <div className="relative">
+        <div className="flex items-center w-full md:w-auto">
+          <div className="relative w-full md:w-auto">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -327,7 +327,7 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
                 streamManager.ingestBatch([]); // trigger recomputation/render
               }}
               placeholder="Search projects (Cmd+K)"
-              className="pl-8 pr-3 py-1.5 w-56 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:border-[#014D3E]/40 transition-colors shadow-sm inset-y-0"
+              className="pl-8 pr-3 py-1.5 w-full md:w-56 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:border-[#014D3E]/40 transition-colors shadow-sm inset-y-0"
             />
           </div>
         </div>
@@ -417,8 +417,8 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
         {/* Sticky Headers (React-owned shell) */}
         <div className="sticky top-0 z-20 flex bg-white border-b border-slate-100 w-max min-w-full">
           {columns.map((col) => {
-            const isSortable = !['selected', 'actions', 'trend_24h'].includes(col.key);
-            const isNarrow = ['selected', 'actions', 'trend_24h'].includes(col.key);
+            const isSortable = !['actions', 'trend_24h'].includes(col.key);
+            const isNarrow = ['actions', 'trend_24h'].includes(col.key);
             return (
               <div
                 key={col.key}
@@ -439,11 +439,7 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
                   justifyContent: col.align === 'right' ? 'flex-end' : col.align === 'center' ? 'center' : 'flex-start',
                 }}
               >
-                {col.key === 'selected' ? (
-                  <input type="checkbox" disabled className="h-3.5 w-3.5 rounded border-slate-300 cursor-pointer accent-[#014D3E]" />
-                ) : (
-                  <span>{col.label}</span>
-                )}
+                <span>{col.label}</span>
                 {renderSortIndicator(col.key)}
               </div>
             );
@@ -508,7 +504,13 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
 
       {/* Side Inspector Split Pane */}
       {selectedRow && (
-        <div className="w-[340px] border-l border-slate-200/70 bg-white flex flex-col h-full flex-shrink-0 z-30 select-text font-sans relative shadow-sm">
+        <>
+          {/* Mobile backdrop */}
+          <div 
+            className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 lg:hidden animate-fade-in" 
+            onClick={() => setSelectedRowId(null)} 
+          />
+          <div className="fixed inset-y-0 right-0 w-full sm:w-[380px] lg:static lg:w-[340px] border-l border-slate-200/70 bg-white flex flex-col h-full flex-shrink-0 z-50 lg:z-30 select-text font-sans shadow-2xl lg:shadow-sm">
           
           {/* Header */}
           <div className="p-5 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
