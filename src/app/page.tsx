@@ -91,13 +91,13 @@ export default function Page() {
 
         <div className="flex flex-col items-center max-w-sm w-full px-8 z-10 text-center">
           {/* Animated Logo Wrapper */}
-          <div className="w-20 h-20 rounded-[28px] bg-[#014D3E] flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#014D3E]/30 mb-8 logo-pulse p-3.5">
+          <div className="w-24 h-24 flex items-center justify-center mb-8 logo-pulse">
             <img src="/logo.svg" className="w-full h-full object-contain" alt="OpsDesk Logo" />
           </div>
 
           {/* Core Title */}
           <h2 className="text-white text-base font-black tracking-wider uppercase mb-1">
-            R2 Command Center
+            OpsDesk Command Center
           </h2>
           <p className="text-slate-500 text-[10px] font-bold tracking-widest uppercase mb-8">
             Initializing Live Telemetry Pipeline

@@ -507,7 +507,7 @@ export const AnalyticsOverlay: React.FC<AnalyticsOverlayProps> = ({ store, onClo
         <div className="flex flex-col">
           {/* Logo & Main Title with Status Pill */}
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-[#ADFF41] flex items-center justify-center shadow-sm flex-shrink-0 overflow-hidden p-1">
+            <div className="w-12 h-12 flex items-center justify-center flex-shrink-0 overflow-hidden">
               <img src="/logo.svg" className="w-full h-full object-contain" alt="OpsDesk Logo" />
             </div>
             <div className="flex items-center space-x-2.5">

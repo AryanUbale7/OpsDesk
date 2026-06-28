@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "R2 Automation Telemetry Terminal",
+  title: "OpsDesk Automation Telemetry Terminal",
   description: "High-frequency real-time robotic automation tracking terminal and operations dashboard with custom DOM recycling.",
 };
 
