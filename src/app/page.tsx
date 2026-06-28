@@ -29,12 +29,15 @@ export default function Page() {
     const loadBaselineAndStartStream = async () => {
       try {
         setLoadStatus('FETCHING DATABASE BASELINE (50,000 ROWS)...');
+        await new Promise(r => setTimeout(r, 1500)); // Artificial delay for professional feel
+
         const response = await fetch('/automation_projects.csv');
         if (!response.ok) {
           throw new Error(`Failed to fetch CSV: ${response.statusText}`);
         }
 
         setLoadStatus('PARSING DATAFRAME IN-MEMORY...');
+        await new Promise(r => setTimeout(r, 1000)); // Artificial delay
         const csvText = await response.text();
         
         // Highly optimized simple comma split matching dataStream parser
@@ -85,18 +88,37 @@ export default function Page() {
 
   if (!mounted || loadStatus !== 'CONNECTED') {
     return (
-      <div className="h-screen w-screen bg-slate-950 flex flex-col items-center justify-center font-sans selection:bg-[#ADFF41] selection:text-slate-900 select-none relative overflow-hidden">
+      <div className="h-screen w-screen bg-white flex flex-col items-center justify-center font-sans selection:bg-[#ADFF41] selection:text-[#014D3E] select-none relative overflow-hidden">
+        <style>{`
+          @keyframes indeterminate {
+            0% { transform: translateX(-100%); width: 50%; }
+            100% { transform: translateX(200%); width: 50%; }
+          }
+          .animate-indeterminate {
+            animation: indeterminate 1.5s infinite linear;
+          }
+          @keyframes spin-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+          }
+          .animate-spin-reverse {
+            animation: spin-reverse 1.5s linear infinite;
+          }
+        `}</style>
         {/* Background ambient light overlay */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(1,77,62,0.15)_0%,transparent_70%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(1,77,62,0.03)_0%,transparent_70%)] pointer-events-none" />
 
         <div className="flex flex-col items-center max-w-sm w-full px-8 z-10 text-center">
           {/* Animated Logo Wrapper */}
-          <div className="w-24 h-24 flex items-center justify-center mb-8 logo-pulse">
-            <img src="/logo.svg" className="w-full h-full object-contain" alt="OpsDesk Logo" />
+          <div className="w-28 h-28 flex items-center justify-center mb-8 relative">
+            <div className="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-[#014D3E] border-t-transparent animate-spin"></div>
+            <div className="absolute inset-3 rounded-full border-4 border-[#ADFF41] border-b-transparent animate-spin-reverse"></div>
+            <img src="/logo.svg" className="w-14 h-14 object-contain animate-pulse" alt="OpsDesk Logo" />
           </div>
 
           {/* Core Title */}
-          <h2 className="text-white text-base font-black tracking-wider uppercase mb-1">
+          <h2 className="text-[#014D3E] text-[18px] font-black tracking-wider uppercase mb-1">
             OpsDesk Command Center
           </h2>
           <p className="text-slate-500 text-[10px] font-bold tracking-widest uppercase mb-8">
@@ -104,12 +126,14 @@ export default function Page() {
           </p>
 
           {/* Premium Progress Bar */}
-          <div className="w-full h-[3px] bg-slate-800 rounded-full overflow-hidden mb-4 progress-loader" />
+          <div className="w-full h-[4px] bg-slate-100 rounded-full overflow-hidden mb-4 relative">
+             <div className="absolute top-0 left-0 h-full bg-[#014D3E] rounded-full animate-indeterminate" />
+          </div>
 
           {/* Status Message */}
-          <div className="flex items-center justify-center space-x-2 font-mono text-[10px] text-slate-400 tracking-wider">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#ADFF41] blink-indicator" />
-            <span className="uppercase text-[#ADFF41] font-bold">{loadStatus}</span>
+          <div className="flex items-center justify-center space-x-2 font-mono text-[10px] text-slate-500 tracking-wider">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#014D3E] blink-indicator" />
+            <span className="uppercase text-[#014D3E] font-bold">{loadStatus}</span>
           </div>
         </div>
       </div>
