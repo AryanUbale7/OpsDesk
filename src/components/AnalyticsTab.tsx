@@ -1,13 +1,10 @@
 'use client';
 
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { RowStore } from '@/engine/RowStore';
 import { StreamManager } from '@/engine/StreamManager';
 import { KPIMetrics } from '@/engine/types';
-import { Chart, registerables } from 'chart.js';
 import { DateRangePicker } from './DateRangePicker';
-
-Chart.register(...registerables);
 
 interface AnalyticsTabProps {
   store: RowStore;
@@ -20,141 +17,144 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ store, streamManager
   const [calendarRange, setCalendarRange] = useState('This Year');
   const [sortBy, setSortBy] = useState('ROI');
 
-  const roiChartRef = useRef<HTMLCanvasElement | null>(null);
-  const hoursChartRef = useRef<HTMLCanvasElement | null>(null);
+  const renderROISVG = () => {
+    const data = [1.0, 1.2, 1.15, 1.5, 1.8, 2.2, 2.4];
+    const labels = ['Sep 01', 'Sep 05', 'Sep 10', 'Sep 15', 'Sep 20', 'Sep 25', 'Sep 30'];
+    const width = 500;
+    const height = 150;
+    const paddingLeft = 30;
+    const paddingRight = 10;
+    const paddingBottom = 20;
+    const paddingTop = 10;
+    const plotWidth = width - paddingLeft - paddingRight;
+    const plotHeight = height - paddingBottom - paddingTop;
+    const minVal = 0.5;
+    const maxVal = 2.5;
+    const range = maxVal - minVal;
 
-  useEffect(() => {
-    let roiChartInstance: Chart | null = null;
-    let hoursChartInstance: Chart | null = null;
-
-    if (roiChartRef.current) {
-      const ctx = roiChartRef.current.getContext('2d');
-      if (ctx) {
-        const gradient = ctx.createLinearGradient(0, 0, 0, 150);
-        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
-        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
-
-        roiChartInstance = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: ['Sep 01', 'Sep 05', 'Sep 10', 'Sep 15', 'Sep 20', 'Sep 25', 'Sep 30'],
-            datasets: [{
-              label: 'ROI',
-              data: [1.0, 1.2, 1.15, 1.5, 1.8, 2.2, 2.4],
-              borderColor: '#10b981',
-              backgroundColor: gradient,
-              fill: true,
-              tension: 0.4,
-              borderWidth: 2.5,
-              pointRadius: 0,
-              pointHoverRadius: 6,
-              pointHoverBackgroundColor: '#10b981',
-              pointHoverBorderColor: '#ffffff',
-              pointHoverBorderWidth: 2,
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                titleFont: { size: 10, weight: 'bold' },
-                bodyFont: { size: 11, weight: 'bold' },
-                padding: 10,
-                cornerRadius: 12,
-                displayColors: false,
-                callbacks: {
-                  label: (context) => `$${context.raw}M`
-                }
-              }
-            },
-            scales: {
-              x: {
-                grid: { display: false },
-                ticks: { color: '#94a3b8', font: { size: 9, weight: 'bold' } }
-              },
-              y: {
-                grid: { color: '#f8fafc' },
-                border: { dash: [4, 4] },
-                ticks: {
-                  color: '#94a3b8',
-                  font: { size: 9, weight: 'bold' },
-                  callback: (val) => `$${val}M`
-                }
-              }
-            }
-          }
-        });
+    const getSmoothBezierPath = (pts: {x: number, y: number}[]) => {
+      if (pts.length === 0) return '';
+      if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+      if (pts.length === 2) return `M ${pts[0].x} ${pts[0].y} L ${pts[1].x} ${pts[1].y}`;
+      let d = `M ${pts[0].x} ${pts[0].y}`;
+      for (let i = 0; i < pts.length - 1; i++) {
+        const p0 = pts[i];
+        const p1 = pts[i + 1];
+        const pPrevious = pts[i - 1] || p0;
+        const pNext = pts[i + 2] || p1;
+        const cp1x = p0.x + (p1.x - pPrevious.x) * 0.16;
+        const cp1y = p0.y + (p1.y - pPrevious.y) * 0.16;
+        const cp2x = p1.x - (pNext.x - p0.x) * 0.16;
+        const cp2y = p1.y - (pNext.y - p0.y) * 0.16;
+        d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
       }
-    }
-
-    if (hoursChartRef.current) {
-      const ctx = hoursChartRef.current.getContext('2d');
-      if (ctx) {
-        hoursChartInstance = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6'],
-            datasets: [{
-              label: 'Hours Saved',
-              data: [8500, 11000, 9200, 14520, 10200, 12000],
-              backgroundColor: [
-                'rgba(139, 92, 246, 0.35)',
-                'rgba(139, 92, 246, 0.35)',
-                'rgba(139, 92, 246, 0.35)',
-                '#7c3aed',
-                'rgba(139, 92, 246, 0.35)',
-                'rgba(139, 92, 246, 0.35)'
-              ],
-              borderRadius: 6,
-              borderSkipped: false,
-              barThickness: 20
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                titleFont: { size: 10, weight: 'bold' },
-                bodyFont: { size: 11, weight: 'bold' },
-                padding: 10,
-                cornerRadius: 12,
-                displayColors: false,
-                callbacks: {
-                  label: (context) => `${Number(context.raw).toLocaleString()} hrs`
-                }
-              }
-            },
-            scales: {
-              x: {
-                grid: { display: false },
-                ticks: { color: '#94a3b8', font: { size: 9, weight: 'bold' } }
-              },
-              y: {
-                grid: { color: '#f8fafc' },
-                border: { dash: [4, 4] },
-                ticks: {
-                  color: '#94a3b8',
-                  font: { size: 9, weight: 'bold' },
-                  callback: (val) => Number(val).toLocaleString()
-                }
-              }
-            }
-          }
-        });
-      }
-    }
-
-    return () => {
-      if (roiChartInstance) roiChartInstance.destroy();
-      if (hoursChartInstance) hoursChartInstance.destroy();
+      return d;
     };
-  }, []);
+
+    const pts = data.map((val, idx) => ({
+      x: paddingLeft + (idx / (data.length - 1)) * plotWidth,
+      y: height - paddingBottom - ((val - minVal) / range) * plotHeight
+    }));
+
+    const linePath = getSmoothBezierPath(pts);
+    const areaPath = `${linePath} L ${pts[pts.length - 1].x} ${height - paddingBottom} L ${pts[0].x} ${height - paddingBottom} Z`;
+
+    return (
+      <svg className="w-full h-full overflow-visible select-none text-[8px] font-bold text-slate-400" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="roiGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#10b981" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+          </linearGradient>
+        </defs>
+
+        {/* Grid Lines */}
+        {[0, 0.5, 1.0, 1.5, 2.0, 2.5].map((val) => {
+          const y = height - paddingBottom - ((val - minVal) / range) * plotHeight;
+          return (
+            <g key={val}>
+              <line x1={paddingLeft} y1={y} x2={width - paddingRight} y2={y} stroke={val === minVal ? '#f8fafc' : '#f8fafc'} strokeWidth="1" strokeDasharray={val === minVal ? '' : '4 4'} />
+              <text x={paddingLeft - 8} y={y + 3} textAnchor="end" fill="#94a3b8" fontSize="9" fontWeight="bold">${val.toFixed(1)}M</text>
+            </g>
+          );
+        })}
+
+        {/* Area */}
+        <path d={areaPath} fill="url(#roiGradient)" />
+
+        {/* Line */}
+        <path d={linePath} fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+        {/* X Axis Labels */}
+        {labels.map((lbl, idx) => {
+          const x = paddingLeft + (idx / (labels.length - 1)) * plotWidth;
+          return (
+            <text key={lbl} x={x} y={height} textAnchor="middle" fill="#94a3b8" fontSize="9" fontWeight="bold">{lbl}</text>
+          );
+        })}
+      </svg>
+    );
+  };
+
+  const renderHoursSVG = () => {
+    const data = [8500, 11000, 9200, 14520, 10200, 12000];
+    const labels = ['W1', 'W2', 'W3', 'W4', 'W5', 'W6'];
+    const width = 500;
+    const height = 150;
+    const paddingLeft = 35;
+    const paddingRight = 10;
+    const paddingBottom = 20;
+    const paddingTop = 10;
+    const plotWidth = width - paddingLeft - paddingRight;
+    const plotHeight = height - paddingBottom - paddingTop;
+    const minVal = 0;
+    const maxVal = 16000;
+    const range = maxVal - minVal;
+
+    return (
+      <svg className="w-full h-full overflow-visible select-none text-[8px] font-bold text-slate-400" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+        {/* Grid Lines */}
+        {[0, 4000, 8000, 12000, 16000].map((val) => {
+          const y = height - paddingBottom - ((val - minVal) / range) * plotHeight;
+          return (
+            <g key={val}>
+              <line x1={paddingLeft} y1={y} x2={width - paddingRight} y2={y} stroke={val === minVal ? '#f8fafc' : '#f8fafc'} strokeWidth="1" strokeDasharray={val === minVal ? '' : '4 4'} />
+              <text x={paddingLeft - 8} y={y + 3} textAnchor="end" fill="#94a3b8" fontSize="9" fontWeight="bold">{val.toLocaleString()}</text>
+            </g>
+          );
+        })}
+
+        {/* Bars */}
+        {data.map((val, idx) => {
+          const barWidth = 35;
+          const x = paddingLeft + (idx / (data.length - 1)) * plotWidth - barWidth / 2;
+          const barHeight = ((val - minVal) / range) * plotHeight;
+          const y = height - paddingBottom - barHeight;
+          const isMax = val === Math.max(...data);
+          
+          return (
+            <rect
+              key={idx}
+              x={x}
+              y={y}
+              width={barWidth}
+              height={barHeight}
+              rx="6"
+              fill={isMax ? '#7c3aed' : 'rgba(139, 92, 246, 0.35)'}
+            />
+          );
+        })}
+
+        {/* X Axis Labels */}
+        {labels.map((lbl, idx) => {
+          const x = paddingLeft + (idx / (labels.length - 1)) * plotWidth;
+          return (
+            <text key={lbl} x={x} y={height} textAnchor="middle" fill="#94a3b8" fontSize="9" fontWeight="bold">{lbl}</text>
+          );
+        })}
+      </svg>
+    );
+  };
 
   // Dynamic Department Performance data binding with high-fidelity mockup fallbacks
   const departmentPerformance = useMemo(() => {
@@ -336,9 +336,9 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ store, streamManager
             </div>
           </div>
 
-          {/* Chart.js Canvas */}
+          {/* SVG Line Chart */}
           <div className="flex-1 w-full relative min-h-0 mt-3 select-none">
-            <canvas ref={roiChartRef} className="w-full h-full" />
+            {renderROISVG()}
           </div>
         </div>
 
@@ -370,9 +370,9 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ store, streamManager
             </div>
           </div>
 
-          {/* Chart.js Canvas */}
+          {/* SVG Bar Chart */}
           <div className="flex-1 w-full relative min-h-0 mt-3 select-none">
-            <canvas ref={hoursChartRef} className="w-full h-full" />
+            {renderHoursSVG()}
           </div>
         </div>
 
