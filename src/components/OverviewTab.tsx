@@ -5,6 +5,7 @@ import { RowStore } from '@/engine/RowStore';
 import { StreamManager } from '@/engine/StreamManager';
 import { KPIMetrics } from '@/engine/types';
 import { KPICards } from './KPICards';
+import { DateRangePicker } from './DateRangePicker';
 
 interface OverviewTabProps {
   store: RowStore;
@@ -216,12 +217,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ store, streamManager, 
               <span className="text-[11px] font-black text-slate-800 uppercase tracking-wider leading-none">Savings Trend</span>
               <span className="text-[9.5px] font-semibold text-slate-400 mt-1 leading-none">Yearly savings performance</span>
             </div>
-            <button className="bg-[#F6F6F6] hover:bg-slate-100 border border-slate-200/80 rounded-xl px-2.5 py-1 text-[9.5px] text-slate-650 font-bold tracking-wide flex items-center shadow-sm">
-              This Year
-              <svg className="w-3 h-3 ml-1.5 text-slate-450" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-              </svg>
-            </button>
+            <DateRangePicker value={timeframe} onChange={setTimeframe} />
           </div>
 
           {/* Wavy Sparkline Area chart with filled green opacity */}
