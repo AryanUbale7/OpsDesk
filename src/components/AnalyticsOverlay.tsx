@@ -707,7 +707,6 @@ export const AnalyticsOverlay: React.FC<AnalyticsOverlayProps> = ({ store, onClo
           </div>
         </div>
 
-        {/* Card 3: ROI vs Budget Scatter Chart */}
         <div className="bg-white border border-slate-200/50 p-6 rounded-[28px] shadow-xs h-[300px] flex flex-col justify-between">
           <div className="flex-1 w-full relative min-h-0">
             <canvas ref={chartRef4} />
@@ -716,18 +715,22 @@ export const AnalyticsOverlay: React.FC<AnalyticsOverlayProps> = ({ store, onClo
 
       </div>
 
-      {/* 5. AI INSIGHTS SECTION */}
+        {/* 5. AI INSIGHTS SECTION */}
       <div className="w-full max-w-7xl mx-auto flex flex-col space-y-3 flex-shrink-0">
         <div className="flex items-center space-x-2 text-slate-400">
-          <span className="text-[12px] leading-none">✨</span>
+          <svg className="w-3.5 h-3.5 text-indigo-500 animate-pulse" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l8.913-6.241C19.789 13.681 21 12 21 10.125V9a1 1 0 00-1-1h-6.812l.813-5.096L5.087 9.141A4 4 0 003 12.375V13.5a1 1 0 001 1h6.812z" />
+          </svg>
           <span className="text-[9.5px] font-black uppercase tracking-widest">AI-POWERED INSIGHTS</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
           {/* Card 1: Highest ROI Industry */}
           <div className="bg-white border border-slate-200/50 p-4 rounded-[20px] shadow-xs flex items-center space-x-3.5 h-[80px]">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-base flex-shrink-0 border border-emerald-100/50">
-              📈
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 flex-shrink-0 border border-emerald-100/50">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+              </svg>
             </div>
             <div className="flex flex-col justify-center min-w-0">
               <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider truncate">Highest ROI Industry</span>
@@ -738,8 +741,10 @@ export const AnalyticsOverlay: React.FC<AnalyticsOverlayProps> = ({ store, onClo
 
           {/* Card 2: Highest Savings Industry */}
           <div className="bg-white border border-slate-200/50 p-4 rounded-[20px] shadow-xs flex items-center space-x-3.5 h-[80px]">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-base flex-shrink-0 border border-emerald-100/50">
-              💰
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 flex-shrink-0 border border-emerald-100/50">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.214.128c.31.187.665.3 1.036.3 1.13 0 2.05-.917 2.05-2.05s-.92-2.05-2.05-2.05H11.5a2.05 2.05 0 00-2.05 2.05c0 1.133.92 2.05 2.05 2.05h.086m-.086 0H12m0-8.818l.214-.128c.31-.187.665-.3 1.036-.3 1.13 0 2.05.917 2.05 2.05s-.92 2.05-2.05 2.05H12.5a2.05 2.05 0 01-2.05-2.05c0-1.133.92-2.05 2.05-2.05h.086m-.086 0H12" />
+              </svg>
             </div>
             <div className="flex flex-col justify-center min-w-0">
               <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider truncate">Highest Savings Industry</span>
@@ -750,8 +755,12 @@ export const AnalyticsOverlay: React.FC<AnalyticsOverlayProps> = ({ store, onClo
 
           {/* Card 3: Most Active Automation */}
           <div className="bg-white border border-slate-200/50 p-4 rounded-[20px] shadow-xs flex items-center space-x-3.5 h-[80px]">
-            <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-base flex-shrink-0 border border-indigo-100/50">
-              🤖
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0 border border-indigo-100/50">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                <rect x="3" y="11" width="18" height="10" rx="2" />
+                <circle cx="12" cy="5" r="2" />
+                <path d="M12 7v4M8 16h.01M16 16h.01" strokeLinecap="round" />
+              </svg>
             </div>
             <div className="flex flex-col justify-center min-w-0">
               <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider truncate">Most Active Automation</span>
@@ -762,8 +771,10 @@ export const AnalyticsOverlay: React.FC<AnalyticsOverlayProps> = ({ store, onClo
 
           {/* Card 4: At Risk Projects */}
           <div className="bg-white border border-slate-200/50 p-4 rounded-[20px] shadow-xs flex items-center space-x-3.5 h-[80px]">
-            <div className="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 text-base flex-shrink-0 border border-rose-100/50">
-              ⚠️
+            <div className="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 flex-shrink-0 border border-rose-100/50">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              </svg>
             </div>
             <div className="flex flex-col justify-center min-w-0">
               <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider truncate">At Risk Projects</span>
@@ -774,8 +785,10 @@ export const AnalyticsOverlay: React.FC<AnalyticsOverlayProps> = ({ store, onClo
 
           {/* Card 5: Average Project Duration */}
           <div className="bg-white border border-slate-200/50 p-4 rounded-[20px] shadow-xs flex items-center space-x-3.5 h-[80px]">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 text-base flex-shrink-0 border border-blue-100/50">
-              🕒
+            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-650 flex-shrink-0 border border-blue-100/50">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
             <div className="flex flex-col justify-center min-w-0">
               <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider truncate">Avg. Project Duration</span>

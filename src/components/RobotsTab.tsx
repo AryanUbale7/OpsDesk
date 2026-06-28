@@ -58,7 +58,13 @@ export const RobotsTab: React.FC<RobotsTabProps> = ({ store, streamManager, metr
               {totalRobots.toLocaleString()}
             </span>
           </div>
-          <div className="w-8 h-8 rounded bg-indigo-50 text-indigo-650 flex items-center justify-center font-bold text-xs">🤖</div>
+          <div className="w-8 h-8 rounded bg-indigo-50 text-indigo-650 flex items-center justify-center flex-shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+              <rect x="3" y="11" width="18" height="10" rx="2" />
+              <circle cx="12" cy="5" r="2" />
+              <path d="M12 7v4M8 16h.01M16 16h.01" strokeLinecap="round" />
+            </svg>
+          </div>
         </div>
 
         {/* Card 2: Fleet In Flight */}
@@ -69,7 +75,11 @@ export const RobotsTab: React.FC<RobotsTabProps> = ({ store, streamManager, metr
               56 in flight
             </span>
           </div>
-          <div className="w-8 h-8 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">⚡</div>
+          <div className="w-8 h-8 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+            </svg>
+          </div>
         </div>
 
         {/* Card 3: Online Rate */}
@@ -80,7 +90,11 @@ export const RobotsTab: React.FC<RobotsTabProps> = ({ store, streamManager, metr
               98.2%
             </span>
           </div>
-          <div className="w-8 h-8 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">✓</div>
+          <div className="w-8 h-8 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+          </div>
         </div>
 
         {/* Card 4: Disconnects */}
@@ -91,7 +105,11 @@ export const RobotsTab: React.FC<RobotsTabProps> = ({ store, streamManager, metr
               3 offline
             </span>
           </div>
-          <div className="w-8 h-8 rounded bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-xs">⚠️</div>
+          <div className="w-8 h-8 rounded bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+          </div>
         </div>
 
       </div>

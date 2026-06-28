@@ -340,7 +340,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ store, streamManager, 
           <div className="flex-1 space-y-3.5 mt-3 select-none text-[10px]">
             {/* Item 1 */}
             <div className="bg-amber-50/40 border border-amber-100/40 px-3.5 py-2.5 rounded-xl flex items-start justify-between space-x-2">
-              <span className="text-amber-600 text-xs font-bold leading-none mt-0.5">⚠️</span>
+              <svg className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              </svg>
               <div className="flex-grow pl-1.5 flex flex-col">
                 <span className="font-bold text-slate-800 leading-tight">High memory usage on worker node 7</span>
               </div>
@@ -349,7 +351,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ store, streamManager, 
 
             {/* Item 2 */}
             <div className="bg-emerald-50/40 border border-emerald-100/40 px-3.5 py-2.5 rounded-xl flex items-start justify-between space-x-2">
-              <span className="text-emerald-600 text-xs font-bold leading-none mt-0.5">✓</span>
+              <svg className="w-3.5 h-3.5 text-emerald-605 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
               <div className="flex-grow pl-1.5 flex flex-col">
                 <span className="font-bold text-slate-800 leading-tight">All systems operational</span>
               </div>
@@ -358,7 +362,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ store, streamManager, 
 
             {/* Item 3 */}
             <div className="bg-blue-50/40 border border-blue-100/40 px-3.5 py-2.5 rounded-xl flex items-start justify-between space-x-2">
-              <span className="text-blue-500 text-xs font-bold leading-none mt-0.5">ℹ️</span>
+              <svg className="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 111.063.852l-.708 2.836a.75.75 0 001.063.852l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12v-.008z" />
+              </svg>
               <div className="flex-grow pl-1.5 flex flex-col">
                 <span className="font-bold text-slate-800 leading-tight">Scheduled maintenance on July 2, 2025</span>
               </div>

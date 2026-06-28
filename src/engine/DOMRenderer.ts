@@ -190,7 +190,7 @@ export class DOMRenderer {
       width: 80,
       label: 'Trend (24H)',
       getValue: (r) => r.roi_percent,
-      getText: () => '📈',
+      getText: () => '',
       getClass: () => '',
       align: 'center',
     },

@@ -60,6 +60,77 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
     }, 3000);
   }, []);
 
+  const handleExportCSV = useCallback(() => {
+    const visibleIds = store.visibleIds;
+    const totalCount = visibleIds.length;
+
+    const headers = [
+      'Project ID',
+      'Project Name',
+      'Department',
+      'Status',
+      'Robots Deployed',
+      'Annual Savings (USD)',
+      'ROI %',
+      'AI Enabled',
+      'Cloud Deployment'
+    ];
+
+    const escapeCSVCell = (val: any) => {
+      if (val === null || val === undefined) return '';
+      let str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        str = str.replace(/"/g, '""');
+        return `"${str}"`;
+      }
+      return str;
+    };
+
+    const csvRows = [headers.join(',')];
+
+    for (let i = 0; i < totalCount; i++) {
+      const id = visibleIds[i];
+      const row = store.store.get(id);
+      if (!row) continue;
+
+      const rowValues = [
+        escapeCSVCell(row.project_id),
+        escapeCSVCell(row.project_name),
+        escapeCSVCell(row.department),
+        escapeCSVCell(row.project_status),
+        escapeCSVCell(row.robots_deployed),
+        escapeCSVCell(row.annual_savings_usd),
+        escapeCSVCell(row.roi_percent),
+        escapeCSVCell(row.ai_enabled ? 'True' : 'False'),
+        escapeCSVCell(row.cloud_deployment ? 'True' : 'False')
+      ];
+      csvRows.push(rowValues.join(','));
+    }
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const filename = `opsdesk-snapshot-${year}-${month}-${day}-${hours}-${minutes}.csv`;
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showToast(`Successfully exported ${totalCount.toLocaleString()} rows to ${filename}`);
+  }, [store, showToast]);
+
   // Sync click handler callback closure with fresh states
   useEffect(() => {
     rowClickRef.current = (rowId) => {
@@ -223,9 +294,19 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
               <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
             </svg>
             Saved Views
-            <svg className="w-3 h-3 ml-1.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 ml-1.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
             </svg>
+          </button>
+
+          <button 
+            onClick={handleExportCSV}
+            className="ml-2 flex items-center px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors cursor-pointer shadow-sm"
+          >
+            <svg className="w-3.5 h-3.5 mr-1.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            Export CSV
           </button>
         </div>
 
@@ -320,9 +401,13 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
           </div>
           <button 
             onClick={onAnalyticsClick}
-            className="text-[10px] font-black uppercase tracking-wider border border-amber-200 dark:border-amber-800 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-md text-amber-800 dark:text-amber-350 hover:bg-amber-50 dark:hover:bg-slate-800 transition-all cursor-pointer shadow-sm"
+            className="text-[10px] font-black uppercase tracking-wider border border-amber-200 dark:border-amber-800 bg-white dark:bg-slate-900 px-2.5 py-1.5 rounded-md text-amber-800 dark:text-amber-350 hover:bg-amber-50 dark:hover:bg-slate-800 transition-all cursor-pointer shadow-sm flex items-center"
           >
-            📊 Analytics View
+            <svg className="w-3.5 h-3.5 mr-1.5 text-amber-600" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+            </svg>
+            Analytics View
           </button>
         </div>
       )}
@@ -503,12 +588,26 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
 
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="text-slate-400 font-bold">Cloud Deployment</span>
-                  <span className={`text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                  <span className={`text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded flex items-center ${
                     selectedRow.cloud_deployment
                       ? 'bg-blue-50 text-blue-600 border border-blue-100/50'
                       : 'bg-amber-50 text-amber-600 border border-amber-100/50'
                   }`}>
-                    {selectedRow.cloud_deployment ? '☁ Cloud-Hosted' : '🏢 On-Premises'}
+                    {selectedRow.cloud_deployment ? (
+                      <>
+                        <svg className="w-3 h-3 mr-1 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 00.332-7.482 3.5 3.5 0 00-6.682-1.018 3 3 0 00-4.65 3.224A3 3 0 002.25 15z" />
+                        </svg>
+                        Cloud-Hosted
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-3 h-3 mr-1 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21h10.5" />
+                        </svg>
+                        On-Premises
+                      </>
+                    )}
                   </span>
                 </div>
               </div>
@@ -524,7 +623,13 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
                   onClick={() => setOpsExpanded(!opsExpanded)}
                   className="w-full flex items-center justify-between px-4 py-3 bg-slate-50/50 hover:bg-slate-50 text-[10.5px] font-black text-slate-700 tracking-wider uppercase focus:outline-none cursor-pointer"
                 >
-                  <span>⚙️ Operations</span>
+                  <span className="flex items-center">
+                    <svg className="w-3.5 h-3.5 mr-1.5 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.43l-1.003.828c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.43l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.991l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.645-.869l.214-1.28z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Operations
+                  </span>
                   <svg className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${opsExpanded ? 'transform rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                   </svg>
@@ -550,7 +655,12 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
                   onClick={() => setFinExpanded(!finExpanded)}
                   className="w-full flex items-center justify-between px-4 py-3 bg-slate-50/50 hover:bg-slate-50 text-[10.5px] font-black text-slate-700 tracking-wider uppercase focus:outline-none cursor-pointer"
                 >
-                  <span>💵 Financials</span>
+                  <span className="flex items-center">
+                    <svg className="w-3.5 h-3.5 mr-1.5 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.214.128c.31.187.665.3 1.036.3 1.13 0 2.05-.917 2.05-2.05s-.92-2.05-2.05-2.05H11.5a2.05 2.05 0 00-2.05 2.05c0 1.133.92 2.05 2.05 2.05h.086m-.086 0H12m0-8.818l.214-.128c.31-.187.665-.3 1.036-.3 1.13 0 2.05.917 2.05 2.05s-.92 2.05-2.05 2.05H12.5a2.05 2.05 0 01-2.05-2.05c0-1.133.92-2.05 2.05-2.05h.086m-.086 0H12" />
+                    </svg>
+                    Financials
+                  </span>
                   <svg className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${finExpanded ? 'transform rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                   </svg>
@@ -567,11 +677,11 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
                       <span className="font-bold text-slate-400 uppercase text-[8px]">Annual Savings</span>
                       <span className="font-bold text-slate-800 font-mono mt-1">
                         ${selectedRow.annual_savings_usd.toLocaleString()}
-                  </span>
-                </div>
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
               {/* Accordion 3: Deployment & Metadata */}
               <div className="border border-slate-200/80 rounded-xl overflow-hidden shadow-sm bg-white">
@@ -580,7 +690,12 @@ export const GridViewport: React.FC<GridViewportProps> = React.memo(({ store, st
                   onClick={() => setMetaExpanded(!metaExpanded)}
                   className="w-full flex items-center justify-between px-4 py-3 bg-slate-50/50 hover:bg-slate-50 text-[10.5px] font-black text-slate-700 tracking-wider uppercase focus:outline-none cursor-pointer"
                 >
-                  <span>🌐 Deployment &amp; Metadata</span>
+                  <span className="flex items-center">
+                    <svg className="w-3.5 h-3.5 mr-1.5 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-.778.099-1.533.284-2.253" />
+                    </svg>
+                    Deployment &amp; Metadata
+                  </span>
                   <svg className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${metaExpanded ? 'transform rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                   </svg>
