@@ -13,6 +13,72 @@ interface DepartmentsTabProps {
 
 export const DepartmentsTab: React.FC<DepartmentsTabProps> = ({ store, streamManager, metrics }) => {
   const [timeRange, setTimeRange] = useState('This Year');
+  const [toasts, setToasts] = useState<{ id: string; message: string }[]>([]);
+
+  const showToast = (msg: string) => {
+    const id = Math.random().toString();
+    setToasts((prev) => [...prev, { id, message: msg }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3000);
+  };
+
+  const handleExportReport = () => {
+    const headers = [
+      'Rank',
+      'Department',
+      'Projects Count',
+      'Annual Savings (USD)',
+      'Average ROI %'
+    ];
+
+    const escapeCSVCell = (val: any) => {
+      if (val === null || val === undefined) return '';
+      let str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        str = str.replace(/"/g, '""');
+        return `"${str}"`;
+      }
+      return str;
+    };
+
+    const csvRows = [headers.join(',')];
+
+    for (let i = 0; i < leadersList.length; i++) {
+      const item = leadersList[i];
+      const rowValues = [
+        escapeCSVCell(item.rank),
+        escapeCSVCell(item.name),
+        escapeCSVCell(item.projects),
+        escapeCSVCell(item.savings),
+        escapeCSVCell(item.roi)
+      ];
+      csvRows.push(rowValues.join(','));
+    }
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const filename = `opsdesk-departments-report-${year}-${month}-${day}-${hours}-${minutes}.csv`;
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showToast(`Successfully exported department report to ${filename}`);
+  };
 
   // Sparkline coordinates for top metric cards
   const savingsSpark = [15, 12, 16, 11, 14, 9, 13, 10, 15, 11, 14, 10];
@@ -86,8 +152,11 @@ export const DepartmentsTab: React.FC<DepartmentsTabProps> = ({ store, streamMan
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
             </svg>
           </button>
-          <button className="bg-white border border-slate-200/80 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 flex items-center shadow-sm hover:bg-slate-5 transition-colors">
-            <svg className="w-3.5 h-3.5 mr-2 text-slate-455" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <button 
+            onClick={handleExportReport}
+            className="bg-white border border-slate-200/80 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 flex items-center shadow-sm hover:bg-slate-5 transition-colors cursor-pointer"
+          >
+            <svg className="w-3.5 h-3.5 mr-2 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
             Export Report
@@ -389,6 +458,19 @@ export const DepartmentsTab: React.FC<DepartmentsTabProps> = ({ store, streamMan
 
         </div>
       </div>
+
+      {/* Toast notifications portal container */}
+      <div className="fixed bottom-5 right-5 z-[999] flex flex-col space-y-2 pointer-events-none select-none">
+        {toasts.map((t) => (
+          <div key={t.id} className="bg-slate-900 border border-slate-800 text-white rounded-xl px-4.5 py-3 text-[11px] font-bold shadow-lg animate-fade-in pointer-events-auto flex items-center space-x-2">
+            <svg className="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{t.message}</span>
+          </div>
+        ))}
+      </div>
+
     </div>
   );
 };
