@@ -102,3 +102,44 @@ body {
   @apply px-4 py-2 text-left text-[9px] font-bold uppercase tracking-wider text-slate-400 border-r border-b border-slate-100 bg-slate-50;
   user-select: none;
 }
+
+/* Preloader Animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 15px rgba(173, 255, 65, 0.15));
+  }
+  50% {
+    transform: scale(1.04);
+    filter: drop-shadow(0 0 35px rgba(173, 255, 65, 0.45));
+  }
+}
+
+@keyframes progressFlow {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.logo-pulse {
+  animation: pulseGlow 2.5s infinite ease-in-out;
+}
+
+.progress-loader {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-loader::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 50%;
+  background: linear-gradient(90deg, transparent, rgba(173, 255, 65, 0.4), transparent);
+  animation: progressFlow 1.8s infinite ease-in-out;
+}

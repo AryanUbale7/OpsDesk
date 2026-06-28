@@ -85,10 +85,32 @@ export default function Page() {
 
   if (!mounted || loadStatus !== 'CONNECTED') {
     return (
-      <div className="h-screen w-screen bg-slate-950 flex flex-col items-center justify-center font-mono text-slate-500 text-xs">
-        <div className="flex items-center space-x-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 blink-indicator" />
-          <span className="tracking-widest uppercase">{loadStatus}</span>
+      <div className="h-screen w-screen bg-slate-950 flex flex-col items-center justify-center font-sans selection:bg-[#ADFF41] selection:text-slate-900 select-none relative overflow-hidden">
+        {/* Background ambient light overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(1,77,62,0.15)_0%,transparent_70%)] pointer-events-none" />
+
+        <div className="flex flex-col items-center max-w-sm w-full px-8 z-10 text-center">
+          {/* Animated Logo Wrapper */}
+          <div className="w-20 h-20 rounded-[28px] bg-[#014D3E] flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#014D3E]/30 mb-8 logo-pulse p-3.5">
+            <img src="/logo.svg" className="w-full h-full object-contain" alt="OpsDesk Logo" />
+          </div>
+
+          {/* Core Title */}
+          <h2 className="text-white text-base font-black tracking-wider uppercase mb-1">
+            R2 Command Center
+          </h2>
+          <p className="text-slate-500 text-[10px] font-bold tracking-widest uppercase mb-8">
+            Initializing Live Telemetry Pipeline
+          </p>
+
+          {/* Premium Progress Bar */}
+          <div className="w-full h-[3px] bg-slate-800 rounded-full overflow-hidden mb-4 progress-loader" />
+
+          {/* Status Message */}
+          <div className="flex items-center justify-center space-x-2 font-mono text-[10px] text-slate-400 tracking-wider">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#ADFF41] blink-indicator" />
+            <span className="uppercase text-[#ADFF41] font-bold">{loadStatus}</span>
+          </div>
         </div>
       </div>
     );

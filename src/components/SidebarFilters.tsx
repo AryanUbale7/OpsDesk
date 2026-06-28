@@ -96,13 +96,8 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = React.memo(({
       
       {/* Logo + Brand */}
       <div className="flex items-center px-5 py-4 border-b border-slate-100">
-        <div className="w-8 h-8 rounded-lg bg-[#014D3E] flex items-center justify-center shadow-sm flex-shrink-0">
-          <svg className="w-4.5 h-4.5 text-[#ADFF41]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <rect x="3" y="8" width="18" height="12" rx="3" />
-            <circle cx="8" cy="14" r="1.5" fill="currentColor" />
-            <circle cx="16" cy="14" r="1.5" fill="currentColor" />
-            <path d="M12 2v3M9 2h6" strokeLinecap="round" />
-          </svg>
+        <div className="w-8 h-8 rounded-lg bg-[#014D3E] flex items-center justify-center shadow-sm flex-shrink-0 overflow-hidden p-1">
+          <img src="/logo.svg" className="w-full h-full object-contain" alt="OpsDesk Logo" />
         </div>
         <div className="ml-2.5 flex flex-col leading-none">
           <span className="text-[13px] font-black text-[#014D3E] tracking-tight">R2 Platform</span>
